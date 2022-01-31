@@ -1,0 +1,6 @@
+{
+	"ADSK_API_HOST" : "developer-stg.api.autodesk.com",
+	"TANDEM_HOST": "tandem-stg.autodesk.com",
+	"FORGE_KEY": "XXX",
+	"FORGE_SECRET": "YYY"
+}
