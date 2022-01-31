@@ -292,6 +292,52 @@ async function main() {
 
     }
 
+
+    //Query properties of the updated elements, including change history
+    {
+
+        let queryDef = {
+            keys: [foundAsset.elementId],
+            families: [ColumnFamilies.Standard, ColumnFamilies.DtProperties],
+            includeHistory: true
+        }
+
+        const scanReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/scan`, {
+            method: 'POST',
+            headers: { ...httpOptions.headers,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(queryDef)
+        });
+        if(!scanReq.ok) {
+            throw new Error(await scanReq.text());
+        }
+
+        const elements = await scanReq.json();
+
+        // first array element is the response version, drop it
+        elements.shift();
+
+        console.log(elements);
+
+        if (!elements.length) {
+            console.log("unexpected -- no element found");
+        }
+
+        let rawData = elements[0];
+
+        let ourProp = rawData[propDef.id];
+
+        //Find the property we modified above and print its change history
+        console.log("Change history for", propDef.name);
+        for (let i=0; i<ourProp.length; i+=2) {
+            let val = ourProp[i];
+            let timestamp = ourProp[i+1];
+
+            console.log(`Value: ${val} set on ${new Date(timestamp).toString()}`);
+        }
+    }
+
     return;
 }
 
