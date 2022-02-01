@@ -17,8 +17,10 @@ const { ColumnFamilies } = require("./dt-schema");
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;
 
+// TODO: Add a specific facility URN to point to (which you can scrape from the browser address bar of a facility loaded into Tandem)
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw
 const facilityUrn = "urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw" //(LTU East Residence, TK account) Add your facility URN here
+//const facilityUrn = "urn:adsk.dtt:Rpt8zwI8QPSijbc6p6xVVA" //(JMA_Test)
 
 async function main() {
 
@@ -35,7 +37,7 @@ async function main() {
 
     console.log("Got access token", accessToken);
 
-    // Get facility details -- this will give us a list of all models that 
+    // Get facility details -- this will give us a list of all models that
     // make up the facility
     const settingsReq = await fetch(`${apiUrl}/twins/${facilityUrn}`, httpOptions);
     if(!settingsReq.ok) {
@@ -61,7 +63,7 @@ async function main() {
         //console.log(schema);
     }
 
-    //Create a map of property name -> property id, and vice versa so that we 
+    //Create a map of property name -> property id, and vice versa so that we
     //can look up the desired properties in each model. Note that the same properties
     //may have different internal IDs in each constituent model, which is why it's important
     //to track this per model.
@@ -74,7 +76,7 @@ async function main() {
         let propIdMap = modelPropertyIdMaps[modelId] = {};
 
         for (let colDef of modelPropsList.attributes) {
-            
+
             let propKey = `[${colDef.category}][${colDef.name}]`;
             propNameMap[propKey] = colDef;
 
@@ -82,7 +84,7 @@ async function main() {
         }
     }
 
-    
+
     //Query specific properties -- this query will return all elements that have any of these properties set (not null).
     //This makes it possible to do more efficient two step queries, where one searches for some elements first, then
     //gets all their properties.
@@ -126,12 +128,12 @@ async function main() {
         const elements = await scanReq.json();
         // first array element is the response version, drop it
         elements.shift();
-    
+
         //console.log(elements);
 
         perModelAssets[modelId] = elements.map(e => e.k);
     }
-    
+
     //We now have a subset of elements (all the Rooms/Spaces). Let's query all their properties and save
     //them to a file
     let perModelAssetProps = {};
@@ -170,7 +172,7 @@ async function main() {
 
         perModelAssetProps[modelId] = elements;
     }
-   
+
 
     //Format the asset property data for output, e.g CSV, JSON etc
     let allAssets = [];
@@ -220,7 +222,7 @@ async function main() {
 
     //Update a specific property of a specific element.
     //We will look for Air Handler_v03 : ERV-2 by its serial number (6543214)
-    
+
     //First, find the asset
     let foundAsset;
     for (let asset of allAssets) {
@@ -250,7 +252,7 @@ async function main() {
     //which is formatted in ISO format.
     let newVal = new Date().toISOString().slice(0, 10);
 
-    //check if the new value is different from the old value 
+    //check if the new value is different from the old value
     //(currently the server will accept updates regardless of there being a change, so the client needs to filter this out)
     skipUpdate = false;
     for (let prop of foundAsset.props) {
@@ -278,7 +280,7 @@ async function main() {
 
         const mutateReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/mutate`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 ...httpOptions.headers,
                 "Content-Type": "application/json"
             },
