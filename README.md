@@ -27,9 +27,13 @@ Example of query and update of model asset data. The output just goes to the Ter
 
 ![Tandem TestBed App 020](./docs/Readme_img_020.png)
 
-3. Make a new config file by filling in the values in `config/default.json` and saving to `config/local.json`
+3. In the file `index.js`, add the URN of the Facility you used in Step 2.
 
 ![Tandem TestBed App 021](./docs/Readme_img_021.png)
+
+4. Make a new config file by filling in the values in `config/default.json` and saving to `config/local.json`
+
+![Tandem TestBed App 022](./docs/Readme_img_022.png)
 
 
 ## Start App
