@@ -48,4 +48,8 @@ By default, the application is looking for a property named "Serial Number", whi
 
 ## Modifying the App to look for specific property names
 
+*NOTE: This sample is written to look for specific known properties associated with a known Facility Template.  It will not work out of the box for any Facility without some setup to apply that same Facility Template, or changing the code to look for properties that are known to your Facility.*
+
+*This section will be updated with instructions on how to either apply the common Facility Template to your Facility, or to change the code appropriately. For now... you will have to see if you can hack your way through it, or if you have specific goal in mind, contact the Tandem Development team and we will try to help supply specific code*
+
 ![Tandem TestBed App 040](./docs/Readme_img_040.png)
