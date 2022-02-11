@@ -13,6 +13,7 @@ const fetch = require("node-fetch");
 const config = require("config");
 const AdskAuth = require("./adsk-auth").AdskAuth;
 const { ColumnFamilies } = require("./dt-schema");
+const { toQualifiedKey } = require("./encode");
 
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;
@@ -21,6 +22,7 @@ const apiUrl = `https://${host}/api/v1`;
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw
 const facilityUrn = "urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw" //(LTU East Residence, TK account) Add your facility URN here
 //const facilityUrn = "urn:adsk.dtt:Rpt8zwI8QPSijbc6p6xVVA" //(JMA_Test)
+
 
 async function main() {
 
@@ -149,7 +151,7 @@ async function main() {
 
         let queryDef = {
             keys: perModelAssets[modelId],
-            families: [ColumnFamilies.Standard, ColumnFamilies.Source, ColumnFamilies.DtProperties] //TODO: This needs to be fixed on the server side -- seems like empty families query returns just Revit properties
+            families: [ColumnFamilies.Standard, ColumnFamilies.Source, ColumnFamilies.DtProperties, ColumnFamilies.Refs] //TODO: This needs to be fixed on the server side -- seems like empty families query returns just Revit properties
         }
 
         const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
@@ -186,7 +188,7 @@ async function main() {
         //property data to human readable format
         for (let rawProps of perModelAssetProps[modelId]) {
 
-            let niceRoomProps = {
+            let niceProps = {
                 modelId: modelId,
                 elementId: rawProps.k,
                 props: []
@@ -198,6 +200,7 @@ async function main() {
                 let propDef = propIdMap[propId];
                 if (!propDef) {
                     console.warn("Unknown property", propId);
+                    continue;
                 }
 
                 //Skip Revit design properties from output
@@ -205,14 +208,14 @@ async function main() {
                     continue;
                 }
 
-                niceRoomProps.props.push({
+                niceProps.props.push({
                     id: propId,
                     name: propDef ? propDef.name : propId,
                     value: rawProps[propId][0]
                 })
             }
 
-            allAssets.push(niceRoomProps);
+            allAssets.push(niceProps);
         }
     }
 
@@ -338,6 +341,48 @@ async function main() {
 
             console.log(`Value: ${val} set on ${new Date(timestamp).toString()}`);
         }
+    }
+
+
+    //Query a reference to another database element (like the Family Type)
+    {
+        let typeId;
+        for (let i=0; i<foundAsset.props.length; i++) {
+            let prop = foundAsset.props[i];
+
+            if (prop.name === "Family Type") {
+                typeId = prop.value;
+                break;
+            }
+        }
+
+        let qualifiedEncodedId = toQualifiedKey(typeId, true);
+
+        let queryDef = {
+            keys: [qualifiedEncodedId],
+            families: [ColumnFamilies.Standard, ColumnFamilies.DtProperties, ColumnFamilies.Source],
+            includeHistory: true
+        }
+
+        const scanReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/scan`, {
+            method: 'POST',
+            headers: { ...httpOptions.headers,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(queryDef)
+        });
+        if(!scanReq.ok) {
+            throw new Error(await scanReq.text());
+        }
+
+        const elements = await scanReq.json();
+
+        // first array element is the response version, drop it
+        elements.shift();
+
+        console.log(elements);
+
+
     }
 
     return;
