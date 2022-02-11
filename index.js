@@ -138,6 +138,8 @@ async function main() {
     //them to a file
     let perModelAssetProps = {};
 
+    let reqs = [];
+
     for (let modelId in perModelAssets) {
 
         let keyList = perModelAssets[modelId];
@@ -152,19 +154,29 @@ async function main() {
             families: [ColumnFamilies.Standard, ColumnFamilies.Source, ColumnFamilies.DtProperties] //TODO: This needs to be fixed on the server side -- seems like empty families query returns just Revit properties
         }
 
-        const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
+        reqs.push(fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
             method: 'POST',
             headers: { ...httpOptions.headers,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(queryDef)
-        });
-        if(!scanReq.ok) {
-            throw new Error(await scanReq.text());
+        }))
+    }
+
+    let results = await Promise.all(reqs);
+
+    results = results.map(scanReq => {
+        if (!scanReq.ok) {
+            console.error(scanReq.text());
+            return null;
+        } else {
+            return scanReq.json();
         }
+    });
 
-        const elements = await scanReq.json();
+    results = await Promise.all(results);
 
+    for (let elements of results) {
         // first array element is the response version, drop it
         elements.shift();
 
