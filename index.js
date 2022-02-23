@@ -20,8 +20,9 @@ const apiUrl = `https://${host}/api/v1`;
 
 // TODO: Add a specific facility URN to point to (which you can scrape from the browser address bar of a facility loaded into Tandem)
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw
-const facilityUrn = "urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw" //(LTU East Residence, TK account) Add your facility URN here
+//const facilityUrn = "urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw" //(LTU East Residence, TK account) Add your facility URN here
 //const facilityUrn = "urn:adsk.dtt:Rpt8zwI8QPSijbc6p6xVVA" //(JMA_Test)
+const facilityUrn = "urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA" //Small Medical
 
 
 async function main() {
@@ -93,7 +94,7 @@ async function main() {
 	//Normally this should be some "Tagged Asset" or Revit/source file property that is unique to the desired subset of elements,
 	//for example Serial Number, Manufacturer, etc.
 	//NOTE: Again, we make the queries sequentially, but they can be done in parallel for faster overall response time.
-	const desiredColumns = ["[Asset Identity Data][Serial Number]"];
+	const desiredColumns = ["[00 - Identity Data][Serial Number]"];
 	let perModelAssets = {};
 	for (let modelId in modelSchemas) {
 		let modelProps = modelPropertyNameMaps[modelId];
@@ -231,7 +232,7 @@ async function main() {
 	for (let asset of allAssets) {
 		for (let prop of asset.props) {
 			if (prop.name === "Serial Number") {
-				if (prop.value === "6543214") {
+				if (prop.value === "123456") {
 					foundAsset = asset;
 					break;
 				}
@@ -249,7 +250,7 @@ async function main() {
 	//Modify (or insert) a property value for this asset.
 	//We will modify the Warranty Expiration date
 	let schema = modelPropertyNameMaps[foundAsset.modelId];
-	let propDef = schema["[Asset Identity Data][Warranty Expiration]"];
+	let propDef = schema["[00 - Identity Data][Warranty Start Date]"];
 
 	//We know that Warranty Expiration is a property of type "dateTime" and stores just a date,
 	//which is formatted in ISO format.
