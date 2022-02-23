@@ -48,6 +48,25 @@ async function queryElements(modelId, queryDef) {
 }
 
 
+async function modifyElementProperty(modelId, mutations) {
+
+	const mutateReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/mutate`, {
+		method: 'POST',
+		headers: {
+			...httpOptions.headers,
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(mutations)
+	});
+
+	if(!mutateReq.ok) {
+		throw new Error(await mutateReq.text());
+	}
+
+	return await mutateReq.text();
+}
+
+
 async function main() {
 
 
@@ -278,20 +297,9 @@ async function main() {
 			muts: [mutation]
 		}
 
-		const mutateReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/mutate`, {
-			method: 'POST',
-			headers: {
-				...httpOptions.headers,
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(payload)
-		});
+		await modifyElementProperty(foundAsset.modelId, payload);
 
-		if(!mutateReq.ok) {
-			throw new Error(await mutateReq.text());
-		}
 		console.log('Mutation succeeded');
-
 	}
 
 
