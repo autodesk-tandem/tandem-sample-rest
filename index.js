@@ -23,6 +23,29 @@ const apiUrl = `https://${host}/api/v1`;
 const facilityUrn = "urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw" //(LTU East Residence, TK account) Add your facility URN here
 //const facilityUrn = "urn:adsk.dtt:Rpt8zwI8QPSijbc6p6xVVA" //(JMA_Test)
 
+let g_headers;
+
+
+async function queryElements(modelId, queryDef) {
+
+	const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
+		method: 'POST',
+		headers: { ...g_headers,
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(queryDef)
+	});
+	if(!scanReq.ok) {
+		throw new Error(await scanReq.text());
+	}
+
+	const elements = await scanReq.json();
+	// first array element is the response version, drop it
+	elements.shift();
+
+	return elements;
+}
+
 
 async function main() {
 
@@ -31,11 +54,11 @@ async function main() {
 	const auth = new AdskAuth();
 	let accessToken = await auth.getToken("data:read data:write", 3600);
 
-	let httpOptions = {
-		headers: {
-			Authorization: "Bearer " + accessToken.access_token
-		}
+	g_headers = {
+		Authorization: "Bearer " + accessToken.access_token
 	};
+
+	let httpOptions = { headers: g_headers };
 
 	console.log("Got access token", accessToken);
 
@@ -116,20 +139,7 @@ async function main() {
 		//Perform the read query
 		let queryDef = { qualifiedColumns: queryColumns };
 
-		const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
-			method: 'POST',
-			headers: { ...httpOptions.headers,
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(queryDef)
-		});
-		if(!scanReq.ok) {
-			throw new Error(await scanReq.text());
-		}
-
-		const elements = await scanReq.json();
-		// first array element is the response version, drop it
-		elements.shift();
+		const elements = await queryElements(modelId, queryDef);
 
 		//console.log(elements);
 
@@ -154,21 +164,7 @@ async function main() {
 			families: [ColumnFamilies.Standard, ColumnFamilies.Source, ColumnFamilies.DtProperties, ColumnFamilies.Refs] //TODO: This needs to be fixed on the server side -- seems like empty families query returns just Revit properties
 		}
 
-		const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
-			method: 'POST',
-			headers: { ...httpOptions.headers,
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(queryDef)
-		});
-		if(!scanReq.ok) {
-			throw new Error(await scanReq.text());
-		}
-
-		const elements = await scanReq.json();
-
-		// first array element is the response version, drop it
-		elements.shift();
+		const elements = await queryElements(modelId, queryDef);
 
 		console.log(elements);
 
@@ -300,28 +296,13 @@ async function main() {
 
 	//Query properties of the updated elements, including change history
 	{
-
 		let queryDef = {
 			keys: [foundAsset.elementId],
 			families: [ColumnFamilies.Standard, ColumnFamilies.DtProperties],
 			includeHistory: true
 		}
 
-		const scanReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/scan`, {
-			method: 'POST',
-			headers: { ...httpOptions.headers,
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(queryDef)
-		});
-		if(!scanReq.ok) {
-			throw new Error(await scanReq.text());
-		}
-
-		const elements = await scanReq.json();
-
-		// first array element is the response version, drop it
-		elements.shift();
+		const elements = await queryElements(foundAsset.modelId, queryDef);
 
 		console.log(elements);
 
@@ -364,25 +345,9 @@ async function main() {
 			includeHistory: true
 		}
 
-		const scanReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/scan`, {
-			method: 'POST',
-			headers: { ...httpOptions.headers,
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(queryDef)
-		});
-		if(!scanReq.ok) {
-			throw new Error(await scanReq.text());
-		}
-
-		const elements = await scanReq.json();
-
-		// first array element is the response version, drop it
-		elements.shift();
+		const elements = queryElements(foundAsset.modelId, queryDef);
 
 		console.log(elements);
-
-
 	}
 
 	return;
