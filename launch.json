@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/index.js",
+            "program": "${workspaceFolder}/ex1-query-mutate.js",
             "env": {
                 // "TOKEN": "<token>"
             },

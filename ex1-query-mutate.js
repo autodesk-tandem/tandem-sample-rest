@@ -50,7 +50,7 @@ async function queryElements(modelId, queryDef) {
 
 async function modifyElementProperty(modelId, mutations) {
 
-	const mutateReq = await fetch(`${apiUrl}/modeldata/${foundAsset.modelId}/mutate`, {
+	const mutateReq = await fetch(`${apiUrl}/modeldata/${modelId}/mutate`, {
 		method: 'POST',
 		headers: {
 			...httpOptions.headers,
@@ -166,7 +166,7 @@ async function main() {
 		perModelAssets[modelId] = elements.map(e => e.k);
 	}
 
-	//We now have a subset of elements (all the Rooms/Spaces). Let's query all their properties and save
+	//We now have a subset of elements (all elements with Serial Number). Let's query all their properties and save
 	//them to a file
 	let perModelAssetProps = {};
 
@@ -240,7 +240,7 @@ async function main() {
 
 
 	//Update a specific property of a specific element.
-	//We will look for Air Handler_v03 : ERV-2 by its serial number (6543214)
+	//We will look for PURY-P240,264,288YSKMU-A : PURY-P240YSKMU-A_460V_Non-Ducted by its serial number 123456
 
 	//First, find the asset
 	let foundAsset;
