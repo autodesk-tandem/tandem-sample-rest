@@ -36,9 +36,9 @@ Example of query and update of model asset data. The output just goes to the Ter
 ![Tandem TestBed App 022](./docs/Readme_img_022.png)
 
 
-## Start App
+## Run Examples
 
-To start the development server, run `node index.js` from the Terminal command line. This will run the application in the node.js environment and return output to the Terminal window.
+To run examples, run `node ex1-query-mutate.js` (adjust name of sample to run accordingly) from the Terminal command line. This will run the application in the node.js environment and return output to the Terminal window.
 
 At this point, you should get something like the following image.
 

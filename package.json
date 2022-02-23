@@ -2,13 +2,13 @@
   "name": "tandem-rest-demo",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "ex1-query-mutate.js",
   "dependencies": {
     "config": "^3.3.7",
     "node-fetch": "^2.6.0"
   },
   "scripts": {
-    "test": "node index.js"
+    "test": "node ex1-query-mutate.js"
   },
   "author": "traian.stanev@autodesk.com",
   "license": "UNLICENSED"
