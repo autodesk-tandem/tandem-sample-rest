@@ -166,7 +166,7 @@ async function main() {
 		perModelAssets[modelId] = elements.map(e => e.k);
 	}
 
-	//We now have a subset of elements (all the Rooms/Spaces). Let's query all their properties and save
+	//We now have a subset of elements (all elements with Serial Number). Let's query all their properties and save
 	//them to a file
 	let perModelAssetProps = {};
 
