@@ -13,13 +13,6 @@ const StandardAttributes = {
 	[QC.CategoryName] :   Object.freeze(new AttributeDef(QC.CategoryName,  ['Category Name', 'Common', AttributeType.String, null, '', '', AttributeFlags.afReadOnly, 0, '', '', '', ColumnNames.CategoryName, ColumnFamilies.Virtual, null])),
 	[QC.FamilyPath] :     Object.freeze(new AttributeDef(QC.FamilyPath,    ['Category/Family', 'Common', AttributeType.String, null, '', '', AttributeFlags.afHidden|AttributeFlags.afReadOnly, 0, '', '', '', ColumnNames.FamilyPath, ColumnFamilies.Standard, null])),
 
-	[QC.SystemUnassigned]:	Object.freeze(new AttributeDef(QC.SystemUnassigned, 	['Connectivity Unassigned', 'Common', AttributeType.BLOB, null, '', '', ColumnNames.Unassigned, ColumnFamilies.Refs, null])),
-	[QC.SystemPrev]: 	Object.freeze(new AttributeDef(QC.SystemPrev, 				['Connectivity Previous', 'Common', AttributeType.BLOB, null, '', '', ColumnNames.Previous, ColumnFamilies.Refs, null])),
-	[QC.SystemNext]: 	Object.freeze(new AttributeDef(QC.SystemNext, 				['Connectivity Next', 'Common', AttributeType.BLOB, null, '', '', ColumnNames.Next, ColumnFamilies.Refs, null])),
-	[QC.XSystemUnassigned]:	Object.freeze(new AttributeDef(QC.XSystemUnassigned,	['XConnectivity Unassigned', 'Common', AttributeType.BLOB, null, '', '', ColumnNames.Unassigned, ColumnFamilies.Xrefs, null])),
-	[QC.XSystemPrev]: 	Object.freeze(new AttributeDef(QC.XSystemPrev, 				['XConnectivity Previous', 'Common', AttributeType.BLOB, null, '', '', ColumnNames.Previous, ColumnFamilies.Xrefs, null])),
-	[QC.XSystemNext]: 	Object.freeze(new AttributeDef(QC.XSystemNext, 				['XConnectivity Next', 'Common', AttributeType.BLOB, null, '', '', ColumnNames.Next, ColumnFamilies.Xrefs, null])),
-
 	//Only used for backwards compatibilty of older models that don't have the UniformatClass
 	[QC.ElementFlags] : Object.freeze(new AttributeDef(QC.ElementFlags,    ['System-deprecated', 'Common', AttributeType.String, null, '', '', 0, 0, '', '', '', ColumnNames.ElementFlags, ColumnFamilies.Standard, null])),
 };
