@@ -1,4 +1,4 @@
-import  {AttributeDef, AttributeType, AttributeFlags} from "./Attribute.js";
+import { AttributeDef, AttributeType, AttributeFlags } from "./Attribute.js";
 import { QC, ColumnNames, ColumnFamilies } from "./dt-schema.js";
 
 const StandardAttributes = {
