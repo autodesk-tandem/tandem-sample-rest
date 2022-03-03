@@ -177,7 +177,7 @@ const QCOverrides = {
 	[QC.Name]: QC.OName,
 };
 
-module.exports = {
+export {
 	MetaTablePrefix,
 	ColumnFamilies,
 	ColumnNames,

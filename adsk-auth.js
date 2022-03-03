@@ -9,9 +9,9 @@
 //the prior written consent of Autodesk, Inc.
 //
 
-const https = require('https');
-const events = require('events');
-const config = require('config');
+import * as https from 'https';
+import * as events from 'events';
+import config from 'config';
 
 const AuthEvent = {
 	TOKEN_REFRESH: "tokenRefresh",
@@ -21,7 +21,7 @@ const AuthEvent = {
 const SCOPE_ALL = "viewables:read data:read data:write data:create bucket:create bucket:read bucket:update";
 
 
-class AdskAuth extends events.EventEmitter {
+export class AdskAuth extends events.EventEmitter {
 	
 	
 	constructor(options) {
@@ -146,6 +146,3 @@ class AdskAuth extends events.EventEmitter {
 		});
 	}
 }
-
-
-exports.AdskAuth = AdskAuth;

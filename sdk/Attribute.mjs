@@ -8,7 +8,7 @@
 //the prior written consent of Autodesk, Inc.
 //
 
-import {ColumnFamilies} from "./dt-schema.js";
+import {ColumnFamilies} from "./dt-schema";
 
 export const AttributeType =
 {

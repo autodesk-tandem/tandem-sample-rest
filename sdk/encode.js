@@ -8,7 +8,7 @@
 //the prior written consent of Autodesk, Inc.
 //
 
-const { ElementFlags } = require("./dt-schema");
+import { ElementFlags } from "./dt-schema.js";
 
 function makeWebsafe(urn) {
 	return urn.replace(/\+/g, '-') // Convert '+' to '-' (dash)
@@ -26,6 +26,6 @@ function toQualifiedKey(shortKey, isLogicalElement) {
     return makeWebsafe(fullKey.toString("base64"));
 }
 
-module.exports = {
+export {
 	toQualifiedKey
 };
