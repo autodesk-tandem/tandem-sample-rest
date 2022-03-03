@@ -12,7 +12,7 @@
 const fetch = require("node-fetch");
 const config = require("config");
 const AdskAuth = require("./adsk-auth").AdskAuth;
-const { ColumnFamilies } = require("./dt-schema");
+const { ColumnFamilies } = require("./sdk/dt-schema");
 const { toQualifiedKey } = require("./encode");
 
 const host = config.get("TANDEM_HOST");

@@ -12,8 +12,8 @@
 const fetch = require("node-fetch");
 const config = require("config");
 const AdskAuth = require("./adsk-auth").AdskAuth;
-const { ColumnFamilies, QC } = require("./dt-schema");
-const { toQualifiedKey } = require("./encode");
+const { ColumnFamilies, QC } = require("./sdk/dt-schema");
+const { toQualifiedKey } = require("./sdk/encode");
 
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;
@@ -22,7 +22,8 @@ const apiUrl = `https://${host}/api/v1`;
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw
 //const facilityUrn = "urn:adsk.dtt:snFhpMynSjuNIl0yXdfbPw" //(LTU East Residence, TK account) Add your facility URN here
 //const facilityUrn = "urn:adsk.dtt:Rpt8zwI8QPSijbc6p6xVVA" //(JMA_Test)
-const facilityUrn = "urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA" //Small Medical
+//const facilityUrn = "urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA" //Small Medical
+const facilityUrn = "urn:adsk.dtt:u16vTTS2RLStz4sUpk5Ekw" //Norconsult (confidential)
 
 let g_headers;
 
@@ -32,8 +33,9 @@ async function queryElements(modelId, queryDef, resultSet, transformerFunc) {
 	const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
 		method: 'POST',
 		headers: { ...g_headers,
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
 		},
+		compress: true,
 		body: JSON.stringify(queryDef)
 	});
 	if(!scanReq.ok) {
@@ -90,7 +92,7 @@ async function main() {
 	}
 
 	const settings = await settingsReq.json();
-	console.log(JSON.stringify(settings, null, 2));
+	//console.log(JSON.stringify(settings, null, 2));
 
 	// For each model (imported file) in this facility, list the available element properties
 	// This is essentially the data schema. 
@@ -118,14 +120,19 @@ async function main() {
 		}
 	}
 
+	let t0 = Date.now();
 
 	//Query basic properties (name, category) of all elements. Do in parallel for all models in the facility
 	let perModelAssets = {};
 	let queryDef = { qualifiedColumns: [QC.CategoryId] };
+	//let queryDef = { families: [ColumnFamilies.Standard] };
 
 	await Promise.all(settings.links.map(model => queryElements(model.modelId, queryDef, perModelAssets, e => {
-		return {key: e.k, catId: -2000000 - (0 | e[QC.CategoryId][0])}
+		return {key: e.k, catId: -2000000 - (0 | e[QC.CategoryId]?.[0])}
 	})));
+
+	let t1 = Date.now();
+	console.log("Query execution time", t1 - t0);
 
 
 	//We now have information about all elements. Let's choose a subset based on Revit Category
@@ -182,7 +189,7 @@ async function main() {
 
 				let propDef = propIdMap[propId];
 				if (!propDef) {
-					console.warn("Unknown property", propId);
+					//console.warn("Unknown property", propId);
 					continue;
 				}
 
@@ -203,7 +210,7 @@ async function main() {
 	}
 
 	//Print all assets' properties as JSON
-	console.log(JSON.stringify(allAssets, null, 2));
+	//console.log(JSON.stringify(allAssets, null, 2));
 
 
 	return;
