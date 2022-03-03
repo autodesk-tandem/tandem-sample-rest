@@ -9,11 +9,11 @@
 //
 
 
-const fetch = require("node-fetch");
-const config = require("config");
-const AdskAuth = require("./adsk-auth").AdskAuth;
-const { ColumnFamilies, QC } = require("./sdk/dt-schema");
-const { toQualifiedKey } = require("./sdk/encode");
+import fetch from "node-fetch";
+import config from "config";
+import { AdskAuth } from "./adsk-auth.js";
+import { ColumnFamilies, QC } from "./sdk/dt-schema.js";
+import { toQualifiedKey } from "./sdk/encode.js";
 
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;

@@ -5,6 +5,25 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "ex1 query mutate",
+			"program": "${workspaceFolder}/ex1-query-mutate.js",
+			"request": "launch",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "pwa-node"
+		},
+		{
+			"name": "example 3 attrs",
+			"program": "${workspaceFolder}/ex3-attrs.js",
+			"request": "launch",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "pwa-node"
+		},
+		
+		{
 			"type": "pwa-node",
 			"request": "launch",
 			"name": "example 2",

@@ -9,11 +9,11 @@
 //
 
 
-const fetch = require("node-fetch");
-const config = require("config");
-const AdskAuth = require("./adsk-auth").AdskAuth;
-const { ColumnFamilies } = require("./sdk/dt-schema");
-const { toQualifiedKey } = require("./sdk/encode");
+import fetch from "node-fetch";
+import config from "config";
+import { AdskAuth } from "./adsk-auth.js";
+import { ColumnFamilies } from "./sdk/dt-schema.js";
+import { toQualifiedKey } from "./sdk/encode.js";
 
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;
@@ -53,7 +53,7 @@ async function modifyElementProperty(modelId, mutations) {
 	const mutateReq = await fetch(`${apiUrl}/modeldata/${modelId}/mutate`, {
 		method: 'POST',
 		headers: {
-			...httpOptions.headers,
+			...g_headers,
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify(mutations)
@@ -96,7 +96,7 @@ async function main() {
 	// This is essentially the data schema. Note this is done in sequence for clarity, but the requests
 	// can be made in parallel for better performance
 	let modelSchemas = {};
-	for (model of settings.links) {
+	for (let model of settings.links) {
 		const schemaReq = await fetch(`${apiUrl}/modeldata/${model.modelId}/schema`, httpOptions);
 		if(!schemaReq.ok) {
 			throw new Error(await schemaReq.text());
@@ -273,7 +273,7 @@ async function main() {
 
 	//check if the new value is different from the old value
 	//(currently the server will accept updates regardless of there being a change, so the client needs to filter this out)
-	skipUpdate = false;
+	let skipUpdate = false;
 	for (let prop of foundAsset.props) {
 		if (prop.id === propDef.id) {
 			if (prop.value === newVal) {
