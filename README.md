@@ -27,7 +27,7 @@ Example of query and update of model asset data. The output just goes to the Ter
 
 ![Tandem TestBed App 020](./docs/Readme_img_020.png)
 
-3. In the file `index.js`, add the URN of the Facility you used in Step 2.
+3. Each example .js file (ex1-query-mutate.js, ex2-query-parallel.js, etc) there is a line specifying the URN of the Facility.  Change to refer to the URN of the Facility you used in Step 2.
 
 ![Tandem TestBed App 021](./docs/Readme_img_021.png)
 
