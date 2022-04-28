@@ -1,14 +1,4 @@
 
-//Copyright 2022 Autodesk, Inc.
-//All rights reserved.
-//
-//This computer source code and related instructions and comments are the
-//unpublished confidential and proprietary information of Autodesk, Inc.
-//and are protected under Federal copyright and state trade secret law.
-//They may not be disclosed to, copied or used by any third party without
-//the prior written consent of Autodesk, Inc.
-//
-
 import * as https from 'https';
 import * as events from 'events';
 import config from 'config';
@@ -22,8 +12,8 @@ const SCOPE_ALL = "viewables:read data:read data:write data:create bucket:create
 
 
 export class AdskAuth extends events.EventEmitter {
-	
-	
+
+
 	constructor(options) {
 
 		super();
@@ -51,9 +41,9 @@ export class AdskAuth extends events.EventEmitter {
 		if (this.timeoutId)
 			clearTimeout(this.timeoutId);
 
-		let dataString = "client_id=" + this.key 
-			+ "&client_secret=" + this.secret 
-			+ "&grant_type=client_credentials" 
+		let dataString = "client_id=" + this.key
+			+ "&client_secret=" + this.secret
+			+ "&grant_type=client_credentials"
 			+ "&scope=" + scope;
 
 		let headers = {

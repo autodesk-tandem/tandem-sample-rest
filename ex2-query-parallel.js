@@ -1,13 +1,3 @@
-//Copyright 2022 Autodesk, Inc.
-//All rights reserved.
-//
-//This computer source code and related instructions and comments are the
-//unpublished confidential and proprietary information of Autodesk, Inc.
-//and are protected under Federal copyright and state trade secret law.
-//They may not be disclosed to, copied or used by any third party without
-//the prior written consent of Autodesk, Inc.
-//
-
 
 import fetch from "node-fetch";
 import config from "config";
@@ -92,7 +82,7 @@ async function main() {
 	//console.log(JSON.stringify(settings, null, 2));
 
 	// For each model (imported file) in this facility, list the available element properties
-	// This is essentially the data schema. 
+	// This is essentially the data schema.
 	let modelSchemas = {};
 	await Promise.all(settings.links.map(model => querySchema(model.modelId, modelSchemas)));
 
@@ -133,7 +123,7 @@ async function main() {
 
 
 	//We now have information about all elements. Let's choose a subset based on Revit Category
-	//and get their full properties 
+	//and get their full properties
 	let perModelAssetProps = {};
 
 	await Promise.all(settings.links.map(model => {
