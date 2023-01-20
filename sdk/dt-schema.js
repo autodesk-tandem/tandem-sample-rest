@@ -55,6 +55,8 @@ const ColumnNames = {
 	OClassification:    "!v", //family Standard, data table, override
 	Name:               "n", //family: Standard
 	OName:              "!n", //family: Standard, name override
+	SystemClass:        "b", //family: Standard, data table, Revit System Classification as bitmask
+	OSystemClass:       "!b",//family: Standard, data table, Revit System Classification as bitmask, override
 	CategoryId:         "c", //family: Standard
 	CategoryName:       "vc", //family: Virtual
 	FamilyPath:         "f", //family: Standard, Family Type elements only.
@@ -146,6 +148,8 @@ const QC = {
 	CategoryId:         ColumnFamilies.Standard + ":" + ColumnNames.CategoryId,
 	CategoryName:       ColumnFamilies.Virtual  + ":" + ColumnNames.CategoryName,
 	ElementFlags:       ColumnFamilies.Standard + ":" + ColumnNames.ElementFlags,
+	SystemClass:        ColumnFamilies.Standard + ":" + ColumnNames.SystemClass,
+	OSystemClass:       ColumnFamilies.Standard + ":" + ColumnNames.OSystemClass,
 	FamilyPath:         ColumnFamilies.Standard + ":" + ColumnNames.FamilyPath,
 	UniformatClass:     ColumnFamilies.Standard + ":" + ColumnNames.UniformatClass,
 	OUniformatClass:    ColumnFamilies.Standard + ":" + ColumnNames.OUniformatClass,
