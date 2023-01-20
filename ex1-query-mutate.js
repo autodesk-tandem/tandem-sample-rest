@@ -4,20 +4,22 @@ import config from "config";
 import { AdskAuth } from "./adsk-auth.js";
 import { ColumnFamilies } from "./sdk/dt-schema.js";
 import { toQualifiedKey } from "./sdk/encode.js";
+import { AttrSchema } from "./sdk/AttrSchema.js";
 
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;
+const apiV2Url = `https://${host}/api/v2`;
 
 // TODO: Add a specific facility URN to point to (which you can scrape from the browser address bar of a facility loaded into Tandem)
-//Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA
-const facilityUrn = "urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA" //Small Medical
+//Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:GhUu1nxkSlSbH2JU113I_A
+const facilityUrn = "urn:adsk.dtt:GhUu1nxkSlSbH2JU113I_A" //Small Medical
 
 let g_headers;
 
 
 async function queryElements(modelId, queryDef) {
 
-	const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
+	const scanReq = await fetch(`${apiV2Url}/modeldata/${modelId}/scan`, {
 		method: 'POST',
 		headers: { ...g_headers,
 			"Content-Type": "application/json"
@@ -80,42 +82,30 @@ async function main() {
 	const settings = await settingsReq.json();
 	console.log(JSON.stringify(settings, null, 2));
 
+
+
+
+
 	// For each model (imported file) in this facility, list the available element properties
 	// This is essentially the data schema. Note this is done in sequence for clarity, but the requests
 	// can be made in parallel for better performance
 	let modelSchemas = {};
 	for (let model of settings.links) {
-		const schemaReq = await fetch(`${apiUrl}/modeldata/${model.modelId}/schema`, httpOptions);
+		const schemaReq = await fetch(`${apiUrl}/modeldata/${model.modelId}/attrs`, httpOptions);
 		if(!schemaReq.ok) {
 			throw new Error(await schemaReq.text());
 		}
 		const schema = await schemaReq.json();
 
-		modelSchemas[model.modelId] = schema;
+		modelSchemas[model.modelId] = new AttrSchema(model.modelId, schema);
 
 		//console.log(schema);
 	}
 
-	//Create a map of property name -> property id, and vice versa so that we
-	//can look up the desired properties in each model. Note that the same properties
-	//may have different internal IDs in each constituent model, which is why it's important
-	//to track this per model.
-	let modelPropertyNameMaps = {};
-	let modelPropertyIdMaps = {};
-	for (let modelId in modelSchemas) {
-		let modelPropsList = modelSchemas[modelId];
 
-		let propNameMap = modelPropertyNameMaps[modelId] = {};
-		let propIdMap = modelPropertyIdMaps[modelId] = {};
 
-		for (let colDef of modelPropsList.attributes) {
 
-			let propKey = `[${colDef.category}][${colDef.name}]`;
-			propNameMap[propKey] = colDef;
 
-			propIdMap[colDef.id] = colDef;
-		}
-	}
 
 
 	//Query specific properties -- this query will return all elements that have any of these properties set (not null).
@@ -124,19 +114,17 @@ async function main() {
 	//Normally this should be some "Tagged Asset" or Revit/source file property that is unique to the desired subset of elements,
 	//for example Serial Number, Manufacturer, etc.
 	//NOTE: Again, we make the queries sequentially, but they can be done in parallel for faster overall response time.
-	const desiredColumns = ["[00 - Identity Data][Serial Number]"];
 	let perModelAssets = {};
 	for (let modelId in modelSchemas) {
-		let modelProps = modelPropertyNameMaps[modelId];
+		let schema = modelSchemas[modelId];
 
 		let queryColumns = [];
 
-		for (let desiredColumn of desiredColumns) {
-
-			let prop = modelProps[desiredColumn]
-			if (prop) {
-				queryColumns.push(prop.id);
-			}
+		let prop = schema.findAttribute("General", "Serial Number");
+		if (prop) {
+			//We know that the property we are looking for is one added
+			//via custom Tandem properties template, so we add the name prefix to it directly
+			queryColumns.push(ColumnFamilies.DtProperties +":"+ prop.id);
 		}
 
 		//This constituent model does not have elements with the desired properties, skip it
@@ -154,8 +142,13 @@ async function main() {
 		perModelAssets[modelId] = elements.map(e => e.k);
 	}
 
-	//We now have a subset of elements (all elements with Serial Number). Let's query all their properties and save
-	//them to a file
+
+
+
+
+
+
+	//We now have a subset of elements (all elements with Serial Number). Let's query all their properties 
 	let perModelAssetProps = {};
 
 	for (let modelId in perModelAssets) {
@@ -186,7 +179,7 @@ async function main() {
 	for (let modelId in perModelAssetProps) {
 
 		//Get the schame for this model
-		let propIdMap = modelPropertyIdMaps[modelId];
+		let schema = modelSchemas[modelId];
 
 		//Loop over the query result for each element and convert the returned
 		//property data to human readable format
@@ -201,7 +194,7 @@ async function main() {
 			for (let propId in rawProps) {
 				if (propId == "k") continue;
 
-				let propDef = propIdMap[propId];
+				let propDef = schema.findAttributeById(propId.split(":")[1]);
 				if (!propDef) {
 					console.warn("Unknown property", propId);
 					continue;
@@ -212,8 +205,12 @@ async function main() {
 					continue;
 				}
 
+				let [colFam, colName] = propId.split(":");
+
 				niceProps.props.push({
-					id: propId,
+					colFam: colFam,
+					colName: colName,
+					qId: propId,
 					name: propDef ? propDef.name : propId,
 					value: rawProps[propId][0]
 				})
@@ -227,10 +224,16 @@ async function main() {
 	console.log(JSON.stringify(allAssets, null, 2));
 
 
-	//Update a specific property of a specific element.
-	//We will look for PURY-P240,264,288YSKMU-A : PURY-P240YSKMU-A_460V_Non-Ducted by its serial number 123456
 
-	//First, find the asset
+
+
+
+
+
+	//Update a specific property of a specific element.
+	//We will look for an object by its Serial Number 123456
+
+	//First, find the asset in the list of assets with Serial Number that we got above
 	let foundAsset;
 	for (let asset of allAssets) {
 		for (let prop of asset.props) {
@@ -250,12 +253,14 @@ async function main() {
 
 	console.log("Found asset", foundAsset);
 
-	//Modify (or insert) a property value for this asset.
-	//We will modify the Warranty Expiration date
-	let schema = modelPropertyNameMaps[foundAsset.modelId];
-	let propDef = schema["[00 - Identity Data][Warranty Start Date]"];
 
-	//We know that Warranty Expiration is a property of type "dateTime" and stores just a date,
+
+	//Modify (or insert) a property value for this asset.
+	//We will modify the Installation Date
+	let schema = modelSchemas[foundAsset.modelId];
+	let propDef = schema.findAttribute("General", "Installation Date");
+
+	//We know that it is a property of type "dateTime" and stores just a date,
 	//which is formatted in ISO format.
 	let newVal = new Date().toISOString().slice(0, 10);
 
@@ -263,7 +268,7 @@ async function main() {
 	//(currently the server will accept updates regardless of there being a change, so the client needs to filter this out)
 	let skipUpdate = false;
 	for (let prop of foundAsset.props) {
-		if (prop.id === propDef.id) {
+		if (prop.colName === propDef.id) {
 			if (prop.value === newVal) {
 				skipUpdate = true;
 			}
@@ -277,7 +282,7 @@ async function main() {
 		//This defines an update of one specific property of one element.
 		//Multiple such updates can be sent with a single POST request, and updates
 		//to the same element will be done atomically.
-		let mutation = ["i", propDef.fam, propDef.col, newVal];
+		let mutation = ["i", ColumnFamilies.DtProperties, propDef.id, newVal];
 
 		let payload = {
 			// note that keys and mutations need to have the same length
@@ -289,6 +294,10 @@ async function main() {
 
 		console.log('Mutation succeeded');
 	}
+
+
+
+
 
 
 	//Query properties of the updated elements, including change history
@@ -309,7 +318,7 @@ async function main() {
 
 		let rawData = elements[0];
 
-		let ourProp = rawData[propDef.id];
+		let ourProp = rawData[ColumnFamilies.DtProperties +":"+ propDef.id];
 
 		//Find the property we modified above and print its change history
 		console.log("Change history for", propDef.name);
@@ -322,6 +331,9 @@ async function main() {
 	}
 
 
+
+
+	
 	//Query a reference to another database element (like the Family Type)
 	{
 		let typeId;
@@ -342,7 +354,7 @@ async function main() {
 			includeHistory: true
 		}
 
-		const elements = queryElements(foundAsset.modelId, queryDef);
+		const elements = await queryElements(foundAsset.modelId, queryDef);
 
 		console.log(elements);
 	}
