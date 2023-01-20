@@ -87,9 +87,6 @@ export class AttrSchema {
 
 			//the standard attributes are defined with fully qualified names, we need
 			//just the stripped column name in the attrMap to be consistent
-			if (!attr.id) {
-				console.log("break");
-			}
 			let [colFam, colName] = attr.id.split(":");
 			aMap[colName || colFam] = attr;
 
