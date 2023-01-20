@@ -3,21 +3,23 @@ import fetch from "node-fetch";
 import config from "config";
 import { AdskAuth } from "./adsk-auth.js";
 import { ColumnFamilies, QC } from "./sdk/dt-schema.js";
+import { AttrSchema } from "./sdk/AttrSchema.js";
 import { toQualifiedKey } from "./sdk/encode.js";
 
 const host = config.get("TANDEM_HOST");
 const apiUrl = `https://${host}/api/v1`;
+const apiV2Url = `https://${host}/api/v2`;
 
 // TODO: Add a specific facility URN to point to (which you can scrape from the browser address bar of a facility loaded into Tandem)
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA
-const facilityUrn = "urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA" //Small Medical
+const facilityUrn = "urn:adsk.dtt:GhUu1nxkSlSbH2JU113I_A" //Small Medical
 
 let g_headers;
 
 
 async function queryElements(modelId, queryDef, resultSet, transformerFunc) {
 
-	const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
+	const scanReq = await fetch(`${apiV2Url}/modeldata/${modelId}/scan`, {
 		method: 'POST',
 		headers: { ...g_headers,
 			"Content-Type": "application/json",
@@ -42,7 +44,7 @@ async function queryElements(modelId, queryDef, resultSet, transformerFunc) {
 
 async function querySchema(modelId, resultSet) {
 
-	const schemaReq = await fetch(`${apiUrl}/modeldata/${modelId}/schema`, {
+	const schemaReq = await fetch(`${apiUrl}/modeldata/${modelId}/attrs`, {
 		headers: g_headers
 	});
 	if(!schemaReq.ok) {
@@ -50,7 +52,7 @@ async function querySchema(modelId, resultSet) {
 	}
 	const schema = await schemaReq.json();
 
-	resultSet[modelId] = schema;
+	resultSet[modelId] = new AttrSchema(modelId, schema);
 
 	//console.log(schema);
 }
@@ -86,27 +88,6 @@ async function main() {
 	let modelSchemas = {};
 	await Promise.all(settings.links.map(model => querySchema(model.modelId, modelSchemas)));
 
-	//Create a map of property name -> property id, and vice versa so that we
-	//can look up the desired properties in each model. Note that the same properties
-	//may have different internal IDs in each constituent model, which is why it's important
-	//to track this per model.
-	let modelPropertyNameMaps = {};
-	let modelPropertyIdMaps = {};
-	for (let modelId in modelSchemas) {
-		let modelPropsList = modelSchemas[modelId];
-
-		let propNameMap = modelPropertyNameMaps[modelId] = {};
-		let propIdMap = modelPropertyIdMaps[modelId] = {};
-
-		for (let colDef of modelPropsList.attributes) {
-
-			let propKey = `[${colDef.category}][${colDef.name}]`;
-			propNameMap[propKey] = colDef;
-
-			propIdMap[colDef.id] = colDef;
-		}
-	}
-
 	let t0 = Date.now();
 
 	//Query basic properties (name, category) of all elements. Do in parallel for all models in the facility
@@ -121,7 +102,6 @@ async function main() {
 	let t1 = Date.now();
 	console.log("Query execution time", t1 - t0);
 
-
 	//We now have information about all elements. Let's choose a subset based on Revit Category
 	//and get their full properties
 	let perModelAssetProps = {};
@@ -135,7 +115,7 @@ async function main() {
 		for (let elInfo of elList) {
 			//Searches for all Mechanical Equipment
 			if (elInfo.catId === -2001140) {
-				keyList.push(toQualifiedKey(elInfo.key));
+				keyList.push(elInfo.key);
 			}
 		}
 
@@ -159,7 +139,7 @@ async function main() {
 	for (let modelId in perModelAssetProps) {
 
 		//Get the schame for this model
-		let propIdMap = modelPropertyIdMaps[modelId];
+		let schema = modelSchemas[modelId];
 
 		//Loop over the query result for each element and convert the returned
 		//property data to human readable format
@@ -174,7 +154,9 @@ async function main() {
 			for (let propId in rawProps) {
 				if (propId == "k") continue;
 
-				let propDef = propIdMap[propId];
+				let [colFam, colName] = propId.split(":");
+
+				let propDef = schema.findAttributeById(colName);
 				if (!propDef) {
 					//console.warn("Unknown property", propId);
 					continue;
@@ -186,7 +168,9 @@ async function main() {
 				}
 
 				niceProps.props.push({
-					id: propId,
+					colFam,
+					colName,
+					qId: propId,
 					name: propDef ? propDef.name : propId,
 					value: rawProps[propId][0]
 				})
@@ -197,7 +181,7 @@ async function main() {
 	}
 
 	//Print all assets' properties as JSON
-	//console.log(JSON.stringify(allAssets, null, 2));
+	console.log(JSON.stringify(allAssets, null, 2));
 
 
 	return;
