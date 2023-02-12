@@ -18,5 +18,6 @@ function toQualifiedKey(shortKey, isLogicalElement) {
 }
 
 export {
-	toQualifiedKey
+	toQualifiedKey,
+    makeWebsafe
 };

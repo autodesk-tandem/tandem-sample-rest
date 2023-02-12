@@ -1,46 +1,15 @@
 
 import fetch from "node-fetch";
-import config from "config";
-import { AdskAuth } from "./adsk-auth.js";
 import { ColumnFamilies, QC } from "./sdk/dt-schema.js";
 import { AttrSchema } from "./sdk/AttrSchema.js";
-import { toQualifiedKey } from "./sdk/encode.js";
 
-const host = config.get("TANDEM_HOST");
-const apiUrl = `https://${host}/api/v1`;
-const apiV2Url = `https://${host}/api/v2`;
 
 // TODO: Add a specific facility URN to point to (which you can scrape from the browser address bar of a facility loaded into Tandem)
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:4Y3gKkNgTG-58yX-XmTtNA
 const facilityUrn = "urn:adsk.dtt:GhUu1nxkSlSbH2JU113I_A" //Small Medical
 
-let g_headers;
+import { g_headers, queryElements, apiUrl, obtainAccessToken, getTwinSettings } from "./sdk/server-query.js";
 
-
-async function queryElements(modelId, queryDef, resultSet, transformerFunc) {
-
-	const scanReq = await fetch(`${apiV2Url}/modeldata/${modelId}/scan`, {
-		method: 'POST',
-		headers: { ...g_headers,
-			"Content-Type": "application/json",
-		},
-		compress: true,
-		body: JSON.stringify(queryDef)
-	});
-	if(!scanReq.ok) {
-		throw new Error(await scanReq.text());
-	}
-
-	const elements = await scanReq.json();
-	// first array element is the response version, drop it
-	elements.shift();
-
-	if (transformerFunc)
-		resultSet[modelId] = elements.map(transformerFunc);
-	else
-		resultSet[modelId] = elements;
-
-}
 
 async function querySchema(modelId, resultSet) {
 
@@ -62,25 +31,11 @@ async function main() {
 
 
 	//Fetch an API access token
-	const auth = new AdskAuth();
-	let accessToken = await auth.getToken("data:read data:write", 3600);
-
-	g_headers = {
-		Authorization: "Bearer " + accessToken.access_token
-	};
-
-	let httpOptions = { headers: g_headers };
-
-	console.log("Got access token", accessToken);
+	await obtainAccessToken();
 
 	// Get facility details -- this will give us a list of all models that
 	// make up the facility
-	const settingsReq = await fetch(`${apiUrl}/twins/${facilityUrn}`, httpOptions);
-	if(!settingsReq.ok) {
-		throw new Error(await settingsReq.text());
-	}
-
-	const settings = await settingsReq.json();
+	const settings = await getTwinSettings(facilityUrn);
 	//console.log(JSON.stringify(settings, null, 2));
 
 	// For each model (imported file) in this facility, list the available element properties
