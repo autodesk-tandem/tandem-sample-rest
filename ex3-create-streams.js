@@ -159,11 +159,6 @@ async function populateStreams() {
 	for (let streamKey in secrets) {
 
 		count++;
-
-		if (count < 78) {
-			continue;
-		}
-
 		console.log(count);
 
 		let samples = createStreamData();
