@@ -14,16 +14,6 @@
 			"type": "pwa-node"
 		},
 		{
-			"name": "example 3 attrs",
-			"program": "${workspaceFolder}/ex3-attrs.js",
-			"request": "launch",
-			"skipFiles": [
-				"<node_internals>/**"
-			],
-			"type": "pwa-node"
-		},
-		
-		{
 			"type": "pwa-node",
 			"request": "launch",
 			"name": "example 2",
@@ -31,6 +21,15 @@
 				"<node_internals>/**"
 			],
 			"program": "${workspaceFolder}/ex2-query-parallel.js"
+		},
+		{
+			"name": "example 3 streams",
+			"program": "${workspaceFolder}/ex3-create-streams.js",
+			"request": "launch",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "pwa-node"
 		}
 	]
 }
