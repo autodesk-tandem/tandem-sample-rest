@@ -41,19 +41,19 @@ export class AdskAuth extends events.EventEmitter {
 		if (this.timeoutId)
 			clearTimeout(this.timeoutId);
 
-		let dataString = "client_id=" + this.key
-			+ "&client_secret=" + this.secret
-			+ "&grant_type=client_credentials"
+		let dataString = "grant_type=client_credentials" 
 			+ "&scope=" + scope;
 
 		let headers = {
-			"Content-Type": "application/x-www-form-urlencoded"
+			"Content-Type": "application/x-www-form-urlencoded",
+			"Accept": "application/json",
+			"Authorization": `Basic ${btoa(`${this.key}:${this.secret}`)}`,
 		};
 
 		let options = {
 			host: this.endpoint,
 			port: 443,
-			path: "/authentication/v1/authenticate",
+			path: "/authentication/v2/token",
 			method: "POST",
 			headers: headers,
 		};
