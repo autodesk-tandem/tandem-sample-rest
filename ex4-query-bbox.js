@@ -7,6 +7,10 @@ import { apiUrl, g_headers, queryElements, obtainAccessToken, getTwinSettings } 
 //Direct link to the facility: https://tandem-stg.autodesk.com/pages/facilities/urn:adsk.dtt:GhUu1nxkSlSbH2JU113I_A
 const facilityUrn = "urn:adsk.dtt:GhUu1nxkSlSbH2JU113I_A" //Small Medical
 
+//Note that each bbox record is 28 bytes, 6 floats, plus 
+//extra 4 bytes containing bit flags that we ignore here.
+const BoxRecordSize = 28;
+
 async function main() {
 
 
@@ -19,7 +23,6 @@ async function main() {
 	// make up the facility
 	const settings = await getTwinSettings(facilityUrn);
 	console.log(JSON.stringify(settings, null, 2));
-
 
 
 	// For each model (imported file) in this facility, get the visualization metadata
@@ -51,9 +54,22 @@ async function main() {
 				let minx = buf.readFloatLE(0) + fo.x;
 				let miny = buf.readFloatLE(4) + fo.y;
 				let minz = buf.readFloatLE(8) + fo.z;
+
 				let maxx = buf.readFloatLE(12) + fo.x;
 				let maxy = buf.readFloatLE(16) + fo.y;
 				let maxz = buf.readFloatLE(20) + fo.z;
+
+				//In some cases, elements can have multiple geometries,
+				//so we have to combine multiple bounding boxes
+				for (let i=BoxRecordSize; i<buf.length; i+= BoxRecordSize) {
+					minx = Math.min(minx, buf.readFloatLE(i)   + fo.x);
+					miny = Math.min(miny, buf.readFloatLE(i+4) + fo.y);
+					minz = Math.min(minz, buf.readFloatLE(i+8) + fo.z);
+
+					maxx = Math.max(maxx, buf.readFloatLE(i+12) + fo.x);
+					maxy = Math.max(maxy, buf.readFloatLE(i+16) + fo.y);
+					maxz = Math.max(maxz, buf.readFloatLE(i+20) + fo.z);
+				}
 
 				box = { minx, miny, minz, maxx, maxy, maxz };
 			}
