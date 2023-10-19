@@ -39,8 +39,8 @@ const ColumnFamilies = {
 
 const ColumnNames = {
 	//LMV-isms
-	Fragment:       "f", //family: LMV, data table
-	BoundingBox:    "b", //family: LMV, data table
+	BoundingBox:    "0", //family: LMV, data table
+	Fragment:       "1", //family: LMV, data table
 	LmvModelRoot:   "lmv", //family: LMV, data table
 	AecModelData:   "aec", //family: LMV, data table
 
