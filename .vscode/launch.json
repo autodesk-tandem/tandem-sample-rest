@@ -4,6 +4,7 @@
 	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
+
 		{
 			"name": "ex1 query mutate",
 			"program": "${workspaceFolder}/ex1-query-mutate.js",
@@ -11,10 +12,10 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"type": "pwa-node"
+			"type": "node"
 		},
 		{
-			"type": "pwa-node",
+			"type": "node",
 			"request": "launch",
 			"name": "example 2",
 			"skipFiles": [
@@ -29,7 +30,17 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"type": "pwa-node"
+			"type": "node"
+		},
+		{
+			"name": "example 4 bbox",
+			"program": "${workspaceFolder}/ex4-query-bbox.js",
+			"request": "launch",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "node"
 		}
+
 	]
 }
