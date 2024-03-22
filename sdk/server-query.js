@@ -4,7 +4,6 @@ import { AdskAuth } from "../adsk-auth.js";
 
 export const host = config.get("TANDEM_HOST");
 export const apiUrl = `https://${host}/api/v1`;
-export const apiV2Url = `https://${host}/api/v2`;
 
 export let g_headers = {};
 
@@ -20,7 +19,7 @@ export async function obtainAccessToken() {
 
 export async function queryElements(modelId, queryDef, resultSet, transformerFunc) {
 
-	const scanReq = await fetch(`${apiV2Url}/modeldata/${modelId}/scan`, {
+	const scanReq = await fetch(`${apiUrl}/modeldata/${modelId}/scan`, {
 		method: 'POST',
 		headers: { ...g_headers,
 			"Content-Type": "application/json",
