@@ -2,3 +2,4 @@
 node_modules/
 config/local*
 .npmrc
+package-lock.json
