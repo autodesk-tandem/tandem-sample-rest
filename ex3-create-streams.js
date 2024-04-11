@@ -12,6 +12,12 @@ const apiUrl = `https://${host}/api/v1`;
 // TODO: Add a specific facility URN to point to (which you can scrape from the browser address bar of a facility loaded into Tandem)
 const facilityUrn = "urn:adsk.dtt:7N1I8wsmTX-tV9kjuwvuVQ" 
 
+/*
+const httpsAgent = new https.Agent({
+	keepAlive: false,
+	maxSockets: 8192
+});
+*/
 
 async function createMatchingLevels(defaultModel, levels) {
 
@@ -222,18 +228,17 @@ async function populateStreams() {
 
 	let count = 0;
 
-	let startDate = new Date(2022, 1, 1).getTime();
+	let startDate = new Date(2023, 7, 7).getTime();
+
+	let proms = [];
 
 	for (let streamKey in secrets) {
-
 		count++;
 		console.log(count);
 
-		if (count <= 495) continue;
+		let samples = createStreamData(startDate, 20000);
 
-		let samples = createStreamData(startDate);
-
-		const batch_size = 20000;
+		const batch_size = 2000;
 		
 		for (let i=0; i<samples.length; i+= batch_size) {
 
@@ -243,7 +248,7 @@ async function populateStreams() {
 
 			let post = {
 				method: "POST",
-				//body: gzipSync(JSON.stringify(samples)),
+				//body: gzipSync(JSON.stringify(data)),
 				body: JSON.stringify(data),
 				headers: {
 					"Authorization": "Basic " + Buffer.from(":" + secrets[streamKey]).toString("base64"),
@@ -252,13 +257,24 @@ async function populateStreams() {
 				}
 			}
 
-			let res = await fetch(`https://tandem-stg.autodesk.com/api/v1/timeseries/models/${defaultModel.modelId}/streams/${streamKey}`, post);
+			let res = fetch(`https://tandem-stg.autodesk.com/api/v1/timeseries/models/${defaultModel.modelId}/streams/${streamKey}`, post);
 
-			let txt = await res.text();
-			console.log(txt);
+			//let txt = await (await res).text();
+			//console.log(txt);
+			proms.push(res);
 		}
 	}
 
+	console.log("waiting on", proms.length);
+
+	let resAll;
+	try {
+		let resAll = await Promise.all(proms);
+	} catch (e) {
+		console.log(e);
+		throw e;
+	}
+	await Promise.all(resAll.map(p => p.text()));
 }
 
 
